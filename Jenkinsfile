@@ -19,9 +19,17 @@ pipeline {
             steps {
                 // pytest devuelve 5 cuando no recolecta ninguna prueba.
                 // Ese caso no debe tumbar la tuberia: solo fallan las pruebas rotas.
-                sh '
-                111
-                '
+                sh '''
+                    set +e
+                    pytest -v --junitxml=reports/junit.xml
+                    RC=$?
+                    set -e
+                    if [ "$RC" -eq 5 ]; then
+                        echo "AVISO: pytest no recolecto pruebas (exit 5). Se continua."
+                        exit 0
+                    fi
+                    exit "$RC"
+                '''
             }
             post {
                 always {
